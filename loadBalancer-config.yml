@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-streamlit-deployment # name of the deployment
+  labels:
+    app: frontend-streamlit-deployment # label/tag the deployment
+spec:
+  replicas: 3 # ensure to create 3 pods for that deployment
+  selector:
+    matchLabels:
+      app: frontend-streamlit-deployment-pod # ensure deployment only manages pods with this label
+  template:
+    metadata:
+      labels:
+        app: frontend-streamlit-deployment-pod # label for pod
+    spec:
+      containers:
+        - name: frontend-streamlit-deployment-container # specify name of container in Pod
+          image: 'dogang/frontend-streamlit:1.1' # specify Image for container
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-fastapi-deployment
+  labels:
+    app: backend-fastapi-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: backend-fastapi-deployment-pod
+  template:
+    metadata:
+      labels:
+        app: backend-fastapi-deployment-pod
+    spec:
+      containers:
+        - name:  backend-fastapi-deployment-container
+          image: 'dogang/backend-fastapi:1.0' 
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-streamlit-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: frontend-streamlit-deployment-pod # redirect traffic to pods with this label 
+  ports:
+    - port: 8501 # tells Cluster resources how to access the service inside the cluster 
+      targetPort: 8501 # tells Kubernetes the port inside the container that the service will route traffic to
+      nodePort: 32555 # public port to access the service externally (NodePort)
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-fastapi-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: backend-fastapi-deployment-pod
+  ports:
+    - port: 1111
+      targetPort: 1111
+      nodePort: 32444
+
